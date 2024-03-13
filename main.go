@@ -49,6 +49,7 @@ func main() {
 
 	router.GET("/generate/student-info/excel/save-new", studentInfoController.GenerateStudentInfoExcelSaveNew)
 	router.GET("/generate/student-info/excel/memory-new", studentInfoController.GenerateStudentInfoExcelMemoryNew)
+	router.GET("/generate/student-info/excel/stream-new", studentInfoController.GenerateStudentInfoExcelStreamNew)
 	router.GET("/generate/student-info/excel/stream-random", studentInfoController.GenerateStudentInfoExcelStreamRandom)
 	router.GET("/generate/teacher-info/excel", teacherInfoController.GenerateTeacherInfoExcel)
 

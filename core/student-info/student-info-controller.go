@@ -14,6 +14,7 @@ type IStudentInfoController interface {
 	GetAllStudentInfo(c *gin.Context)
 	GenerateStudentInfoExcelSaveNew(c *gin.Context)
 	GenerateStudentInfoExcelMemoryNew(c *gin.Context)
+	GenerateStudentInfoExcelStreamNew(c *gin.Context)
 	GenerateStudentInfoExcelStreamRandom(c *gin.Context)
 }
 
@@ -122,6 +123,51 @@ func (controller StudentInfoController) GenerateStudentInfoExcelMemoryNew(c *gin
 	fileName := "students-info-memory-new.xlsx" // Adjust as needed
 	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", fileName))
 	c.Data(200, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", excelData.Bytes())
+}
+
+func (controller StudentInfoController) GenerateStudentInfoExcelStreamNew(c *gin.Context) {
+	f := excelize.NewFile()
+
+	sw, err := f.NewStreamWriter(constants.SheetOne)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	students := controller.StudentInfoModel.GetStudentInfo()
+
+	headers := []string{"Grade", "Room", "Gender", "Name", "StudentID"}
+	headersInterface := make([]interface{}, len(headers))
+	for i, header := range headers {
+		headersInterface[i] = header
+	}
+
+	if err := sw.SetRow("A1", headersInterface); err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	for rowID, student := range students {
+		row := []interface{}{student.Grade, student.Room, student.Grade, student.Name, student.StudentID}
+		cell, err := excelize.CoordinatesToCellName(1, rowID+2)
+		if err != nil {
+			fmt.Println(err)
+			break
+		}
+		if err := sw.SetRow(cell, row); err != nil {
+			fmt.Println(err)
+			break
+		}
+	}
+	if err := sw.Flush(); err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	c.Header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+	c.Header("Content-Disposition", "attachment; filename=students-info-stream-new.xlsx")
+	f.Write(c.Writer)
+	c.Writer.Flush()
 }
 
 func (controller StudentInfoController) GenerateStudentInfoExcelStreamRandom(c *gin.Context) {
